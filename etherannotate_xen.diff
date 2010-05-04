@@ -1,0 +1,64 @@
+//diff -u xen_ether_stock/xen/common/domctl.c xen_etherannotate/xen/common/domctl.c
+// Patch for changes made to Xen Ether 0.1 - fixes the double pause bug
+--- xen_ether_stock/xen/common/domctl.c	2010-05-04 03:19:35.000000000 -0600
++++ xen_etherannotate/xen/common/domctl.c	2010-05-04 03:32:08.000000000 -0600
+@@ -219,7 +219,8 @@
+ 		break;
+ 	}
+ 
+-        domain_pause(d);
++   if(op->u.ether.command_code != XEN_DOMCTL_ETHER_READ_GUEST)
++      domain_pause(d);
+ 	switch(op->u.ether.command_code)
+ 	{
+ 		/* enable single stepping mode */
+@@ -337,15 +338,13 @@
+ 			}
+ 			else
+ 			{
+-                   int length = op->u.ether.data_length;
+-                   char *buffer =
+-                           (char*) xmalloc_bytes(length);
+-                   unsigned long va = op->u.ether.guest_va;
+-			       unsigned char *guest_buffer = 
+-				       op->u.ether.guest_buffer;
+-			       uint32_t offset = 0, copylength = 0;
+-			       int to_write = length;
+-			       int written = 0;
++            int length = op->u.ether.data_length;
++            char *buffer = (char*) xmalloc_bytes(length);
++            unsigned long va = op->u.ether.guest_va;
++            unsigned char *guest_buffer = op->u.ether.guest_buffer;
++            uint32_t offset = 0, copylength = 0;
++            int to_write = length;
++            int written = 0;
+ 
+ 			       if(buffer != NULL)
+                    {
+@@ -519,14 +518,24 @@
+ 
+ 			ret = 0;
+ 			break;
++			
++		case XEN_DOMCTL_ETHER_CLEAR_CR3:
++
++			printk("Clearing cr3 filter list\n");
++
++			ether_clear_cr3_filter(d);
++
++			ret = 0;
++			break;
+ 
+ 		default:
+ 			printk("ETHER: invalid command to domctl\n");
+ 			ret = -ENOSYS;
+ 			break;
+ 	}
+-        domain_unpause(d); /* causes guest to latch new status */
+-        rcu_unlock_domain(d);
++	   if(op->u.ether.command_code != XEN_DOMCTL_ETHER_READ_GUEST)
++         domain_unpause(d); /* causes guest to latch new status */
++      rcu_unlock_domain(d);
+     }
+     break;
+     
