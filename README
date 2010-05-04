@@ -1,0 +1,12 @@
+EtherAnnotate Xen Ether Modifications
+
+Prerequisites: 
+   * Install Xen and Ether as described here: http://ether.gtisc.gatech.edu/source.html
+
+This is a copy of the modified Ether controller software from the Xen Ether research project.  All modifications have occurred within ether.(c|h) and ether_main.(c|h).  Additional changes were made to the Xen Ether hypervisor to eliminate a double-pause bug which severely limited the speed of EtherAnnotate and these changes are listed in the patch file etherannotate_xen.diff (applying this patch to the Xen Ether hypervisor is highly recommended but should be optional)
+
+Usage:
+   1) Run ./ether [dom_id] instrtrace [process_name.exe] > [output_file.trace] in the Xen Ether host
+   2) Run [process_name.exe] inside domain [dom_id] and either let it run until termination or kill it explicitly
+   3) Close ./ether using CTRL-C and the specialized EtherAnnotate trace file should be complete
+   4) Copy [output_file.trace] to a machine with EtherAnnotate IDA Pro plugin installed and follow the instructions for that software (http://github.com/inositle/etherannotate_ida)
